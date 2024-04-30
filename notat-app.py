@@ -34,5 +34,11 @@ def sok_notater(tittel):
         print("Tags:", note[3])
         print("")
 
+def oppdater_notat(notat_id, ny_tittel, ny_tekst, nye_tags):
+    c.execute('''UPDATE notater SET tittel = ?, tekst = ?, tags = ? WHERE id = ?''', (ny_tittel, ny_tekst, nye_tags, notat_id))
+    conn.commit()
+
 # lag_notat("Tittel test", "Tekst test", "testtag, testtag2")
-sok_notater("Tittel test")
+# sok_notater("Tittel test")
+oppdater_notat(1, "Tittel oppdatering test", "Hei og hopp din fluesopp", "test, eksempel, ny_tag")
+vis_alle_notater()
