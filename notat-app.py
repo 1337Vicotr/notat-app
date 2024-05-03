@@ -1,4 +1,5 @@
 import sqlite3
+import json
 
 conn = sqlite3.connect('notater.db')
 c = conn.cursor()
@@ -38,7 +39,39 @@ def oppdater_notat(notat_id, ny_tittel, ny_tekst, nye_tags):
     c.execute('''UPDATE notater SET tittel = ?, tekst = ?, tags = ? WHERE id = ?''', (ny_tittel, ny_tekst, nye_tags, notat_id))
     conn.commit()
 
-# lag_notat("Tittel test", "Tekst test", "testtag, testtag2")
-# sok_notater("Tittel test")
-oppdater_notat(1, "Tittel oppdatering test", "Hei og hopp din fluesopp", "test, eksempel, ny_tag")
+def slett_notat(notat_id):
+    c.execute('''DELETE FROM notater WHERE id = ?''', (notat_id,))
+    conn.commit()
+
+def eksporter_notater(filnavn):
+    c.execute('''SELECT * FROM notater''')
+    notater = c.fetchall()
+    notater_dict = [{"id": note[0], "tittel": note[1], "tekst": note[2], "tags": note[3]} for note in notater]
+    with open(filnavn, 'w') as f:
+        json.dump(notater_dict, f)
+
+def slett_alle_notes_utenom1():
+    c.execute('''DELETE FROM notater WHERE id <> 1''')
+    conn.commit()   
+
+print("___________________")
+print("")
+lag_notat("Tittel test", "Tekst test", "testtag, testtag2")
+lag_notat("Tittel test2", "Tekst test2", "testtag, testtag2")
 vis_alle_notater()
+print("___________________")
+print("")
+
+# sok_notater("Tittel test")
+oppdater_notat(1, "Tittel oppdatering test", "Hei og hopp din fluesopp", "test, ny_tag")
+vis_alle_notater()
+print("___________________")
+print("")
+
+print("")
+vis_alle_notater()
+print("___________________")
+print("")
+
+# eksporter_notater("notater.json")
+slett_alle_notes_utenom1()
