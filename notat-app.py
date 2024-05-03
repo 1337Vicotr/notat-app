@@ -12,7 +12,7 @@ c.execute('''CREATE TABLE IF NOT EXISTS notater
 
 def lag_notat(tittel, tekst, tags):
     c.execute('''INSERT INTO notater (tittel, tekst, tags)
-                 VALUES (?, ?, ?)''', (tittel, tekst, tags))
+                 VALUES (?, ?, ?)''', (tittel, tekst, json.dumps(tags)))
     conn.commit()
 
 def vis_alle_notater():
@@ -22,7 +22,7 @@ def vis_alle_notater():
         print("ID:", note[0])
         print("Tittel:", note[1])
         print("Tekst:", note[2])
-        print("Tags:", note[3])
+        print("Tags:", note[3].split(', '))
         print("")
 
 def sok_notater(tittel):
@@ -50,8 +50,8 @@ def eksporter_notater(filnavn):
     with open(filnavn, 'w') as f:
         json.dump(notater_dict, f)
 
-def slett_alle_notes_utenom1():
-    c.execute('''DELETE FROM notater WHERE id <> 1''')
+def slett_alle_notes():
+    c.execute('''DELETE FROM notater''')
     conn.commit()   
 
 print("___________________")
@@ -63,7 +63,7 @@ print("___________________")
 print("")
 
 # sok_notater("Tittel test")
-oppdater_notat(1, "Tittel oppdatering test", "Hei og hopp din fluesopp", "test, ny_tag")
+# oppdater_notat(1, "Tittel oppdatering test", "Hei og hopp din fluesopp", "test, ny_tag")
 vis_alle_notater()
 print("___________________")
 print("")
@@ -73,5 +73,5 @@ vis_alle_notater()
 print("___________________")
 print("")
 
-# eksporter_notater("notater.json")
-slett_alle_notes_utenom1()
+eksporter_notater("notater.json")
+slett_alle_notes()
