@@ -1,5 +1,6 @@
 import sqlite3
 import json
+from datetime import datetime
 
 conn = sqlite3.connect('notater.db')
 c = conn.cursor()
@@ -8,11 +9,15 @@ c.execute('''CREATE TABLE IF NOT EXISTS notater
              (id INTEGER PRIMARY KEY,
               tittel TEXT,
               tekst TEXT,
-              tags TEXT)''')
+              tags TEXT,
+              opprettelses_tid TEXT,
+              sist_endret TEXT)''')
 
 def lag_notat(tittel, tekst, tags):
-    c.execute('''INSERT INTO notater (tittel, tekst, tags)
-                 VALUES (?, ?, ?)''', (tittel, tekst, json.dumps(tags)))
+    opprettelses_tid = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    sist_endret = opprettelses_tid
+    c.execute('''INSERT INTO notater (tittel, tekst, tags, opprettelses_tid, sist_endret)
+                 VALUES (?, ?, ?, ?, ?)''', (tittel, tekst, json.dumps(tags), opprettelses_tid, sist_endret))
     conn.commit()
 
 def vis_alle_notater():
@@ -23,6 +28,8 @@ def vis_alle_notater():
         print("Tittel:", note[1])
         print("Tekst:", note[2])
         print("Tags:", note[3].split(', '))
+        print("Tid laget:", note[4])
+        print("Sist endret:", note[5])
         print("")
 
 def sok_notater(tittel):
@@ -32,11 +39,14 @@ def sok_notater(tittel):
         print("ID:", note[0])
         print("Tittel:", note[1])
         print("Tekst:", note[2])
-        print("Tags:", note[3])
+        print("Tags:", note[3].split(', '))
+        print("Tid laget:", note[4])
+        print("Sist endret:", note[5])
         print("")
 
 def oppdater_notat(notat_id, ny_tittel, ny_tekst, nye_tags):
-    c.execute('''UPDATE notater SET tittel = ?, tekst = ?, tags = ? WHERE id = ?''', (ny_tittel, ny_tekst, nye_tags, notat_id))
+    sist_endret = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    c.execute('''UPDATE notater SET tittel = ?, tekst = ?, tags = ?, sist_endret = ? WHERE id = ?''', (ny_tittel, ny_tekst, nye_tags, sist_endret, notat_id))
     conn.commit()
 
 def slett_notat(notat_id):
@@ -46,7 +56,7 @@ def slett_notat(notat_id):
 def eksporter_notater(filnavn):
     c.execute('''SELECT * FROM notater''')
     notater = c.fetchall()
-    notater_dict = [{"id": note[0], "tittel": note[1], "tekst": note[2], "tags": note[3]} for note in notater]
+    notater_dict = [{"id": note[0], "tittel": note[1], "tekst": note[2], "tags": note[3], "opprettelses_tid": note[4], "sist_endret": [5]} for note in notater]
     with open(filnavn, 'w') as f:
         json.dump(notater_dict, f)
 
