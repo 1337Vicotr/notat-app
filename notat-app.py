@@ -1,6 +1,8 @@
 import sqlite3
 import json
 from datetime import datetime
+import tkinter as tk
+from tkinter import messagebox
 
 conn = sqlite3.connect('notater.db')
 c = conn.cursor()
@@ -13,75 +15,65 @@ c.execute('''CREATE TABLE IF NOT EXISTS notater
               opprettelses_tid TEXT,
               sist_endret TEXT)''')
 
-def lag_notat(tittel, tekst, tags):
+def lag_notat():
+    tittel = tittel_entry.get()
+    tekst = tekst_entry.get("1.0", tk.END)
+    tags = tags_entry.get()
     opprettelses_tid = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     sist_endret = opprettelses_tid
     c.execute('''INSERT INTO notater (tittel, tekst, tags, opprettelses_tid, sist_endret)
-                 VALUES (?, ?, ?, ?, ?)''', (tittel, tekst, json.dumps(tags), opprettelses_tid, sist_endret))
+                 VALUES (?, ?, ?, ?, ?)''', (tittel, tekst, tags, opprettelses_tid, sist_endret))
     conn.commit()
+    messagebox.showinfo("Notat lagt til", "Notat lagt til")
+    vis_alle_notater()
 
 def vis_alle_notater():
+    notat_liste.delete(0, tk.END)
     c.execute('''SELECT * FROM notater''')
     notater = c.fetchall()
     for note in notater:
-        print("ID:", note[0])
-        print("Tittel:", note[1])
-        print("Tekst:", note[2])
-        print("Tags:", note[3].split(', '))
-        print("Tid laget:", note[4])
-        print("Sist endret:", note[5])
-        print("")
+        notat_liste.insert(tk.END, note[1])  
 
-def sok_notater(tittel):
-    c.execute('''SELECT * FROM notater WHERE tittel LIKE ?''', ('%' + tittel + '%',))
-    notater = c.fetchall()
-    for note in notater:
-        print("ID:", note[0])
-        print("Tittel:", note[1])
-        print("Tekst:", note[2])
-        print("Tags:", note[3].split(', '))
-        print("Tid laget:", note[4])
-        print("Sist endret:", note[5])
-        print("")
+root = tk.Tk()
+root.title("Notat app")
 
-def oppdater_notat(notat_id, ny_tittel, ny_tekst, nye_tags):
-    sist_endret = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    c.execute('''UPDATE notater SET tittel = ?, tekst = ?, tags = ?, sist_endret = ? WHERE id = ?''', (ny_tittel, ny_tekst, nye_tags, sist_endret, notat_id))
-    conn.commit()
+frame = tk.Frame(root)
+frame.pack(padx=10, pady=10)
 
-def slett_notat(notat_id):
-    c.execute('''DELETE FROM notater WHERE id = ?''', (notat_id,))
-    conn.commit()
+tittel_label = tk.Label(frame, text="Tittel:")
+tittel_label.grid(row=0, column=0, sticky="w")
+tittel_entry = tk.Entry(frame)
+tittel_entry.grid(row=0, column=1, padx=5, pady=5)
 
-def eksporter_notater(filnavn):
-    c.execute('''SELECT * FROM notater''')
-    notater = c.fetchall()
-    notater_dict = [{"id": note[0], "tittel": note[1], "tekst": note[2], "tags": note[3], "opprettelses_tid": note[4], "sist_endret": [5]} for note in notater]
-    with open(filnavn, 'w') as f:
-        json.dump(notater_dict, f)
+tekst_label = tk.Label(frame, text="Tekst:")
+tekst_label.grid(row=1, column=0, sticky="w")
+tekst_entry = tk.Text(frame, height=4, width=30)
+tekst_entry.grid(row=1, column=1, padx=5, pady=5)
 
-def slett_alle_notes():
-    c.execute('''DELETE FROM notater''')
-    conn.commit()   
+tags_label = tk.Label(frame, text="Tags:")
+tags_label.grid(row=2, column=0, sticky="w")
+tags_entry = tk.Entry(frame)
+tags_entry.grid(row=2, column=1, padx=5, pady=5)
 
-print("___________________")
-print("")
-lag_notat("Tittel test", "Tekst test", "testtag, testtag2")
-lag_notat("Tittel test2", "Tekst test2", "testtag, testtag2")
+legg_til_button = tk.Button(frame, text="Legg til notat", command=lag_notat)
+legg_til_button.grid(row=3, columnspan=2, pady=10)
+
+notat_liste = tk.Listbox(frame)
+notat_liste.grid(row=4, columnspan=2, padx=5, pady=5, sticky="nsew")
+
 vis_alle_notater()
-print("___________________")
-print("")
 
-# sok_notater("Tittel test")
-# oppdater_notat(1, "Tittel oppdatering test", "Hei og hopp din fluesopp", "test, ny_tag")
-vis_alle_notater()
-print("___________________")
-print("")
+root.mainloop()
 
 print("")
-vis_alle_notater()
-print("___________________")
+print("  _______________________________________________")
+print(" │                                               │")
+print("│  ██╗░░░██╗██╗░█████╗░████████╗░█████╗░██████╗░  │")
+print("│  ██║░░░██║██║██╔══██╗╚══██╔══╝██╔══██╗██╔══██╗  │")
+print("│  ╚██╗░██╔╝██║██║░░╚═╝░░░██║░░░██║░░██║██████╔╝  │")
+print("│  ░╚████╔╝░██║██║░░██╗░░░██║░░░██║░░██║██╔══██╗  │")
+print("│  ░░╚██╔╝░░██║╚█████╔╝░░░██║░░░╚█████╔╝██║░░██║  │")
+print("│  ░░░╚═╝░░░╚═╝░╚════╝░░░░╚═╝░░░░╚════╝░╚═╝░░╚═╝  │")
+print(" │_______________________________________________│")
 print("")
-
-eksporter_notater("notater.json")
-slett_alle_notes()
+print("")
