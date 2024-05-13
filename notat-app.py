@@ -28,11 +28,17 @@ def lag_notat():
     vis_alle_notater()
 
 def vis_alle_notater():
-    notat_liste.delete(0, tk.END)
+    for widget in frame.winfo_children():
+        widget.destroy()
+
     c.execute('''SELECT * FROM notater''')
     notater = c.fetchall()
-    for note in notater:
-        notat_liste.insert(tk.END, note[1])  
+    for i, note in enumerate(notater):
+        note_frame = tk.Frame(frame, relief=tk.RAISED, borderwidth=1)
+        note_frame.grid(row=i, column=0, padx=5, pady=5, sticky="ew")
+        tk.Label(note_frame, text=f"Tittel: {note[1]}", font=("Helvetica", 14)).grid(row=0, column=0, sticky="w", padx=5, pady=5)
+        tk.Label(note_frame, text=f"Notat: {note[2]}", wraplength=400, justify=tk.LEFT).grid(row=1, column=0, sticky="w", padx=5, pady=5)
+        tk.Label(note_frame, text=f"Laget: {note[3]}", font=("Helvetica", 10)).grid(row=2, column=0, sticky="w", padx=5, pady=5)
 
 root = tk.Tk()
 root.title("Notat app")
@@ -58,10 +64,7 @@ tags_entry.grid(row=2, column=1, padx=5, pady=5)
 legg_til_button = tk.Button(frame, text="Legg til notat", command=lag_notat)
 legg_til_button.grid(row=3, columnspan=2, pady=10)
 
-notat_liste = tk.Listbox(frame)
-notat_liste.grid(row=4, columnspan=2, padx=5, pady=5, sticky="nsew")
-
-vis_alle_notater()
+slett_knapp = tk.Button
 
 root.mainloop()
 
